@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block title %}Crops • FiHay{% endblock %}{% block content %}
+<h1>Crop Production</h1><p class="lead">Each crop cycle keeps its planting plan, weekly progress, fertiliser/pesticide history, expenses and sales together.</p>
+<section class="card"><h2>{{ 'Edit crop cycle' if edit_crop else 'Add crop cycle' }}</h2>
+<form id="crop-form" method="post" action="{{ '/crops/' ~ edit_crop.id ~ '/edit' if edit_crop else '/crops' }}" class="formgrid cols3">
+<label>Crop<input name="crop" list="crop-master" value="{{ edit_crop.crop if edit_crop else '' }}" placeholder="e.g. Watermelon" required><datalist id="crop-master">{% for x in master.get('Crop',[]) %}<option value="{{x}}">{% endfor %}</datalist></label>
+<label>Variety<input name="variety" value="{{ edit_crop.variety if edit_crop else '' }}" placeholder="e.g. Crimson Sweet"></label>
+<label>Area (ha)<input name="area_ha" type="number" step="0.01" min="0" value="{{ edit_crop.area_ha if edit_crop else '' }}"></label>
+<label>Plot<select name="plot_id"><option value="">Not assigned</option>{% for p in plots %}<option value="{{ p.id }}" {% if edit_crop and edit_crop.plot_id==p.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select></label>
+<label>Planting date<input name="planting_date" type="date" value="{{ edit_crop.planting_date if edit_crop and edit_crop.planting_date else '' }}"></label>
+<label>Duration (days)<input name="duration_days" type="number" min="0" value="{{ edit_crop.duration_days if edit_crop and edit_crop.duration_days is not none else '' }}" placeholder="e.g. 85"></label>
+<label>Expected harvest<input data-harvest-output type="date" value="{{ edit_crop.expected_harvest_date if edit_crop and edit_crop.expected_harvest_date else '' }}" readonly><small>Calculated from planting date + duration.</small></label>
+<label>Status<select name="status">{% for s in ['Planned','Nursery','Growing','Harvesting','Completed','Failed'] %}<option {% if edit_crop and edit_crop.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+<label class="span2">Notes<textarea name="notes">{{ edit_crop.notes if edit_crop else '' }}</textarea></label>
+<div class="form-actions"><button>{{ 'Save changes' if edit_crop else 'Save crop cycle' }}</button>{% if edit_crop %}<a class="btn-secondary" href="/crops">Cancel</a>{% endif %}</div></form></section>
+<section class="card"><h2>Crop cycles</h2>{% if rows %}<div class="tablewrap"><table><tr><th>Crop</th><th>Variety</th><th>Plot</th><th>Area</th><th>Planting</th><th>Duration</th><th>Expected harvest</th><th>Status</th><th></th></tr>{% for r in rows %}<tr><td>{{ r.crop }}</td><td>{{ r.variety or '—' }}</td><td>{{ r.plot.name if r.plot else '—' }}</td><td>{{ r.area_ha }} ha</td><td>{{ r.planting_date or '—' }}</td><td>{{ (r.duration_days|string ~ ' days') if r.duration_days is not none else '—' }}</td><td>{{ r.expected_harvest_date or '—' }}</td><td><span class="tag">{{ r.status }}</span></td><td class="actions"><a class="table-action" href="/crops/{{ r.id }}">Manage</a><a class="table-action" href="/crops/{{ r.id }}/edit">Edit</a></td></tr>{% endfor %}</table></div>{% else %}<p class="empty">No crop cycles recorded yet.</p>{% endif %}</section>
+{% endblock %}
+{% block scripts %}<script>bindHarvestCalc('crop-form');</script>{% endblock %}

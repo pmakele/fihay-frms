@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block title %}Harvest & Produce • FiHay{% endblock %}{% block content %}
+<div class="pagehead"><div><h1>Harvest & Produce Inventory</h1><p class="lead">Harvests create produce stock. Sales and other uses reduce it automatically.</p></div></div>
+{% if error=='stock' %}<p class="warning">Not enough produce stock for that adjustment.</p>{% elif error=='negative' %}<p class="warning">That edit would make produce stock negative because some of the harvest has already been used or sold.</p>{% endif %}
+<div class="cards mini">{% for c in crops %}<div class="card"><span>{{ c.label }}</span><strong>{{ '%.2f'|format(stock.get(c.id,0)) }}</strong><small>available stock</small></div>{% endfor %}</div>
+<section class="card"><h2>{{ 'Edit harvest' if edit_harvest else 'Record harvest' }}</h2>
+<form method="post" action="{{ '/harvests/' ~ edit_harvest.id ~ '/edit' if edit_harvest else '/harvests' }}" class="formgrid cols3">
+<label>Crop cycle<select name="crop_cycle_id" required>{% for c in crops %}<option value="{{c.id}}" {% if edit_harvest and edit_harvest.crop_cycle_id==c.id %}selected{% endif %}>{{c.label}}</option>{% endfor %}</select></label>
+<label>Harvest date<input type="date" name="harvest_date" value="{{ edit_harvest.harvest_date if edit_harvest else '' }}" required></label>
+<label>Quantity harvested<input type="number" step="0.01" min="0" name="quantity_harvested" value="{{ edit_harvest.quantity_harvested if edit_harvest else '' }}" required></label>
+<label>Unit><select name="unit">{% for x in master.get('Unit',['kg','head','unit']) %}<option {% if edit_harvest and edit_harvest.unit==x %}selected{% endif %}>{{x}}</option>{% endfor %}</select></label>
+<label>Grade / quality<input name="grade" value="{{edit_harvest.grade if edit_harvest else ''}}" placeholder="Grade A / marketable"></label>
+<label>Rejects / losses<input type="number" step="0.01" min="0" name="reject_qty" value="{{edit_harvest.reject_qty if edit_harvest else 0}}"><small>Marketable = harvested minus rejects</small></label>
+<label class="full">Notes<textarea name="notes">{{edit_harvest.notes if edit_harvest else ''}}</textarea></label>
+<div class="form-actions"><button>{{'Save changes' if edit_harvest else 'Save harvest'}}</button>{% if edit_harvest %}<a class="btn-secondary" href="/harvests">Cancel</a>{% endif %}</div>
+</form></section>
+<section class="card"><h2>Post-harvest movement</h2><p class="help">Use this for spoilage, own consumption, donations, processing or transfers. Sales are recorded in the Sales module.</p>
+<form method="post" action="/produce-adjustments" class="formgrid cols3">
+<label>Crop cycle<select name="crop_cycle_id" required>{% for c in crops %}<option value="{{c.id}}">{{c.label}} — {{'%.2f'|format(stock.get(c.id,0))}} available</option>{% endfor %}</select></label>
+<label>Date<input type="date" name="movement_date" required></label>
+<label>Movement<select name="movement_type">{% for x in ['Spoilage/Loss','Own Use','Donation','Processing','Transfer Out','Transfer In'] %}<option>{{x}}</option>{% endfor %}</select></label>
+<label>Quantity<input type="number" min="0" step="0.01" name="quantity" required></label>
+<label>Unit<select name="unit">{% for x in master.get('Unit',['kg','unit']) %}<option>{{x}}</option>{% endfor %}</select></label>
+<label>Reference<input name="reference"></label><label class="full">Notes<textarea name="notes"></textarea></label><button>Save movement</button>
+</form></section>
+<section class="card"><h2>Harvest history</h2>{% if rows %}<div class="tablewrap"><table><tr><th>Date</th><th>Crop</th><th>Harvested</th><th>Rejects</th><th>Marketable</th><th>Grade</th><th></th></tr>{% for r in rows %}<tr><td>{{r.harvest_date}}</td><td>{{r.crop_cycle.label}}</td><td>{{r.quantity_harvested}} {{r.unit}}</td><td>{{r.reject_qty}}</td><td>{{r.marketable_qty}}</td><td>{{r.grade or '—'}}</td><td><a class="table-action" href="/harvests/{{r.id}}/edit">Edit</a></td></tr>{% endfor %}</table></div>{% else %}<p class="empty">No harvests yet.</p>{% endif %}</section>
+<section class="card"><h2>Other produce movements</h2>{% if movements %}<div class="tablewrap"><table><tr><th>Date</th><th>Crop</th><th>Type</th><th>Quantity change</th><th>Reference</th></tr>{% for m in movements %}<tr><td>{{m.movement_date}}</td><td>{{m.crop_cycle.label}}</td><td>{{m.movement_type}}</td><td>{{m.quantity_change}} {{m.unit}}</td><td>{{m.reference or '—'}}</td></tr>{% endfor %}</table></div>{% else %}<p class="empty">No adjustments yet.</p>{% endif %}</section>
+{% endblock %}

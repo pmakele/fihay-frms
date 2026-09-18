@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block title %}Expenses • FiHay{% endblock %}{% block content %}
+<h1>Expenses</h1><p class="lead">Record what FiHay spends, link it to a crop where relevant, and attach the receipt.</p>
+<section class="card"><h2>{{ 'Edit expense' if edit_expense else 'Add expense' }}</h2>
+<form method="post" enctype="multipart/form-data" action="{{ '/expenses/' ~ edit_expense.id ~ '/edit' if edit_expense else '/expenses' }}" class="formgrid cols3">
+<label>Date<input name="expense_date" type="date" value="{{ edit_expense.expense_date if edit_expense else '' }}" required></label>
+<label>Category<select name="category" required>{% for x in master.get('Expense Category',[]) %}<option {% if edit_expense and edit_expense.category==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+<label>Amount (P)<input name="amount" type="number" step="0.01" min="0" value="{{ edit_expense.amount if edit_expense else '' }}" required></label>
+<label>Description<input name="description" value="{{ edit_expense.description if edit_expense else '' }}" required></label>
+<label>Link to crop cycle (optional)<select name="crop_cycle_id"><option value="">General farm expense</option>{% for c in crops %}<option value="{{ c.id }}" {% if edit_expense and edit_expense.crop_cycle_id==c.id %}selected{% endif %}>{{ c.label }}</option>{% endfor %}</select><small>Use this to calculate the true cost and profit of each crop.</small></label>
+<label>Supplier<input name="supplier" value="{{ edit_expense.supplier if edit_expense else '' }}"></label>
+<label>Payment method<select name="payment_method"><option></option>{% for x in master.get('Payment Method',[]) %}<option {% if edit_expense and edit_expense.payment_method==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+<label>Reference<input name="reference" value="{{ edit_expense.reference if edit_expense else '' }}" placeholder="Receipt / bank ref"></label>
+<label>Receipt / invoice upload<input name="receipt" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf">{% if edit_expense and edit_expense.receipt_filename %}<small>Current: <a href="/uploads/receipts/{{ edit_expense.receipt_filename }}" target="_blank">{{ edit_expense.receipt_original_name or 'View receipt' }}</a></small>{% endif %}</label>
+<label class="full">Notes<textarea name="notes">{{ edit_expense.notes if edit_expense else '' }}</textarea></label>
+<div class="form-actions"><button>{{ 'Save changes' if edit_expense else 'Save expense' }}</button>{% if edit_expense %}<a class="btn-secondary" href="/expenses">Cancel</a>{% endif %}</div></form></section>
+<section class="card"><h2>Expense history</h2>{% if rows %}<div class="tablewrap"><table><tr><th>Date</th><th>Category</th><th>Description</th><th>Crop</th><th>Supplier</th><th>Amount</th><th>Receipt</th><th></th></tr>{% for r in rows %}<tr><td>{{ r.expense_date }}</td><td>{{ r.category }}</td><td>{{ r.description }}</td><td>{{ r.crop_cycle.label if r.crop_cycle else 'General farm' }}</td><td>{{ r.supplier or '—' }}</td><td>P{{ '%.2f'|format(r.amount) }}</td><td>{% if r.receipt_filename %}<a class="table-action" target="_blank" href="/uploads/receipts/{{ r.receipt_filename }}">View</a>{% else %}—{% endif %}</td><td><a class="table-action" href="/expenses/{{ r.id }}/edit">Edit</a></td></tr>{% endfor %}</table></div>{% else %}<p class="empty">No expenses recorded yet.</p>{% endif %}</section>
+{% endblock %}

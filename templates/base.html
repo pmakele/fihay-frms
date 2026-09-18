@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#315b38">
+  <title>{% block title %}FiHay FRMS{% endblock %}</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="offlineBanner" class="offline-banner" hidden>Offline mode: records without file attachments will be queued and sent when the farm server is reachable again.</div>
+<header class="topbar">
+  <div class="brand">FiHay <span>Farm Records</span>{% if current_farm %}<small class="brand-farm">{{ current_farm.name }}</small>{% endif %}</div>{% if farm_choices|length > 1 %}<form class="farm-switch" method="post" action="/switch-farm" data-no-offline-queue="true"><select name="farm_id" onchange="this.form.submit()">{% for fid,fname,frole in farm_choices %}<option value="{{ fid }}" {% if current_farm and fid==current_farm.id %}selected{% endif %}>{{ fname }}</option>{% endfor %}</select></form>{% endif %}
+  <button class="navtoggle" aria-label="Menu" onclick="document.querySelector('.nav').classList.toggle('open')">☰</button>
+  <nav class="nav">
+    <a href="/">Dashboard</a><a href="/plots">Plots</a><a href="/crops">Crops</a><a href="/harvests">Harvest</a>
+    <a href="/sales">Sales</a><a href="/expenses">Expenses</a><a href="/livestock">Livestock</a><a href="/inventory">Inventory</a>
+    <a href="/water">Water</a><a href="/incidents">Incidents</a><a href="/help">AI Help</a>{% if current_role in ["Owner","Manager","Platform Admin"] %}<a href="/admin/master-data">Admin</a><a href="/admin/users">Users</a>{% endif %}{% if current_user and current_user.is_system_admin %}<a href="/platform/farms">Farms</a>{% endif %}<a href="/account">Account</a><a href="/logout">Sign out</a>
+  </nav>
+</header>
+<main class="container">{% block content %}{% endblock %}</main>
+<footer>FiHay Farm Records • hosted multi-farm pilot • {{ current_farm.name if current_farm else "no farm selected" }}</footer>
+<script>window.FIHAY_USER_ID={{ current_user.id if current_user else 'null' }};window.FIHAY_FARM_ID={{ current_farm.id if current_farm else 'null' }};window.FIHAY_FARM_NAME={{ (current_farm.name if current_farm else '')|tojson }};</script>
+<script src="/static/offline.js" defer></script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));}
+function bindHarvestCalc(formId){
+  const form=document.getElementById(formId); if(!form) return;
+  const plant=form.querySelector('[name="planting_date"]'); const dur=form.querySelector('[name="duration_days"]');
+  const out=form.querySelector('[data-harvest-output]'); const raw=form.querySelector('[data-harvest-raw]');
+  function calc(){if(!plant?.value||!dur?.value){if(out)out.value='';if(raw)raw.textContent='—';return;} const d=new Date(plant.value+'T00:00:00');d.setDate(d.getDate()+parseInt(dur.value||'0',10)); const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if(out)out.value=iso;if(raw)raw.textContent=d.toLocaleDateString('en-GB');}
+  plant?.addEventListener('change',calc);dur?.addEventListener('input',calc);calc();
+}
+function bindLivestockEventForm(formId){const f=document.getElementById(formId);if(!f)return;const type=f.querySelector('[name="event_type"]');const sections=f.querySelectorAll('[data-event-section]');function refresh(){const v=type.value;sections.forEach(s=>{const allowed=(s.dataset.eventSection||'').split('|');s.style.display=allowed.includes(v)?'block':'none';});}type?.addEventListener('change',refresh);refresh();}
+function bindSaleType(formId){const f=document.getElementById(formId);if(!f)return;const t=f.querySelector('[name="sale_type"]');const crop=f.querySelector('[data-sale-crop]');const live=f.querySelector('[data-sale-livestock]');function r(){if(crop)crop.style.display=t.value==='Crop'?'block':'none';if(live)live.style.display=t.value==='Livestock'?'block':'none';}t?.addEventListener('change',r);r();}
+</script>
+{% block scripts %}{% endblock %}
+</body></html>

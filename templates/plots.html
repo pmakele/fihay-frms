@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Plots • FiHay{% endblock %}{% block content %}
+<h1>Fields & Plots</h1><p class="lead">Break FiHay into manageable production blocks. Crop cycles link back to these plots.</p>
+<div class="grid2"><section class="card"><h2>{{ 'Edit plot' if edit_plot else 'Add plot' }}</h2>
+<form method="post" action="{{ '/plots/' ~ edit_plot.id ~ '/edit' if edit_plot else '/plots' }}" class="formgrid">
+<label>Name<input name="name" value="{{ edit_plot.name if edit_plot else '' }}" placeholder="e.g. Chilli Block 1" required></label>
+<label>Area (ha)<input name="area_ha" type="number" step="0.01" min="0" value="{{ edit_plot.area_ha if edit_plot else '' }}"></label>
+<label>Land use<input name="land_use" value="{{ edit_plot.land_use if edit_plot else '' }}" placeholder="Horticulture, maize, orchard..."></label>
+<label>Irrigation method<select name="irrigation_method"><option></option>{% for x in master.get('Irrigation Method',[]) %}<option {% if edit_plot and edit_plot.irrigation_method==x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select></label>
+<label class="full">Notes<textarea name="notes">{{ edit_plot.notes if edit_plot else '' }}</textarea></label>
+<div class="form-actions"><button>{{ 'Save changes' if edit_plot else 'Save plot' }}</button>{% if edit_plot %}<a class="btn-secondary" href="/plots">Cancel</a>{% endif %}</div></form></section>
+<section class="card"><h2>Current plots</h2>{% if rows %}<div class="tablewrap"><table><tr><th>Plot</th><th>Area</th><th>Use</th><th>Irrigation</th><th></th></tr>{% for r in rows %}<tr><td>{{ r.name }}</td><td>{{ r.area_ha }} ha</td><td>{{ r.land_use }}</td><td>{{ r.irrigation_method or '—' }}</td><td><a class="table-action" href="/plots/{{ r.id }}/edit">Edit</a></td></tr>{% endfor %}</table></div>{% else %}<p class="empty">No plots recorded yet.</p>{% endif %}</section></div>
+{% endblock %}

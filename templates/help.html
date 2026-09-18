@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}FiHay AI Help{% endblock %}{% block content %}
+<div class="pagehead"><div><p class="eyebrow">OFFLINE FARM ASSISTANT</p><h1>FiHay AI Help</h1><p class="lead">Searches FiHay's own records and knowledge base locally. No farm data is sent to an external AI in this pilot.</p></div><span class="pill dark">Works offline with local records</span></div>
+<section class="card"><form method="post" action="/help" class="askbox" data-no-offline-queue="true"><input name="query" value="{{query}}" placeholder="e.g. How many spades do we have? What vaccinations are due?" required><button>Ask</button></form></section>
+{% if answer %}<section class="card answer"><h2>Answer</h2><p>{{answer}}</p>{% if sources %}<small>Based on: {{sources|join(', ')}}</small>{% endif %}</section>{% endif %}
+<section class="card"><h2>Try asking</h2><div class="chips"><span>How many spades do we have?</span><span>What livestock health dates are due?</span><span>How much produce stock is available?</span><span>What happened last time the pump failed?</span></div></section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}Farm Inventory • FiHay{% endblock %}{% block content %}
+<h1>Farm Inventory</h1><p class="lead">Tools, equipment and consumable stock: what FiHay owns, where it is and how much is available.</p>
+{% if low_stock %}<p class="warning"><strong>Low stock:</strong> {% for x in low_stock %}{{x.item_name}} ({{x.current_qty()}} {{x.unit}}){% if not loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+<section class="card"><h2>{{'Edit item' if edit_item else 'Add inventory item'}}</h2>
+<form method="post" action="{{ '/inventory/' ~ edit_item.id ~ '/edit' if edit_item else '/inventory' }}" class="formgrid cols3">
+<label>Item name<input name="item_name" value="{{edit_item.item_name if edit_item else ''}}" required placeholder="Spade / Feed / Drip tape"></label>
+<label>Category<select name="category"><option></option>{% for x in master.get('Inventory Category',[]) %}<option {% if edit_item and edit_item.category==x %}selected{% endif %}>{{x}}</option>{% endfor %}</select></label>
+<label>Type<select name="item_type"><option {% if edit_item and edit_item.item_type=='Durable' %}selected{% endif %}>Durable</option><option {% if edit_item and edit_item.item_type=='Consumable' %}selected{% endif %}>Consumable</option></select></label>
+<label>Opening quantity<input type="number" step="0.01" min="0" name="opening_qty" value="{{edit_item.opening_qty if edit_item else 0}}"></label>
+<label>Unit<select name="unit">{% for x in master.get('Unit',['unit']) %}<option {% if edit_item and edit_item.unit==x %}selected{% endif %}>{{x}}</option>{% endfor %}</select></label>
+<label>Storage / location<input name="location" value="{{edit_item.location if edit_item else ''}}"></label>
+<label>Condition<select name="condition">{% for x in ['Good','Fair','Needs Repair','Damaged','Not Applicable'] %}<option {% if edit_item and edit_item.condition==x %}selected{% endif %}>{{x}}</option>{% endfor %}</select></label>
+<label>Acquisition date<input type="date" name="acquisition_date" value="{{edit_item.acquisition_date if edit_item and edit_item.acquisition_date else ''}}"></label>
+<label>Unit cost (P)<input type="number" step="0.01" min="0" name="unit_cost" value="{{edit_item.unit_cost if edit_item and edit_item.unit_cost is not none else ''}}"></label>
+<label>Minimum stock level<input type="number" step="0.01" min="0" name="min_stock_level" value="{{edit_item.min_stock_level if edit_item and edit_item.min_stock_level is not none else ''}}"></label>
+<label>Supplier<input name="supplier" value="{{edit_item.supplier if edit_item else ''}}"></label><label>Reference<input name="reference" value="{{edit_item.reference if edit_item else ''}}"></label>
+<label>Last service<input type="date" name="last_service_date" value="{{edit_item.last_service_date if edit_item and edit_item.last_service_date else ''}}"></label><label>Next service<input type="date" name="next_service_date" value="{{edit_item.next_service_date if edit_item and edit_item.next_service_date else ''}}"></label>
+<label class="full">Notes<textarea name="notes">{{edit_item.notes if edit_item else ''}}</textarea></label><div class="form-actions"><button>{{'Save changes' if edit_item else 'Add item'}}</button>{% if edit_item %}<a href="/inventory" class="btn-secondary">Cancel</a>{% endif %}</div>
+</form></section>
+<section class="card"><h2>Inventory register</h2>{% if rows %}<div class="tablewrap"><table><tr><th>Item</th><th>Type</th><th>Category</th><th>Owned</th><th>Available</th><th>Issued</th><th>Location</th><th>Condition</th><th></th></tr>{% for r in rows %}<tr><td><a href="/inventory/{{r.id}}">{{r.item_name}}</a></td><td>{{r.item_type}}</td><td>{{r.category or '—'}}</td><td>{{r.current_qty()}} {{r.unit}}</td><td>{{r.available_qty()}} {{r.unit}}</td><td>{{r.issued_qty()}} {{r.unit}}</td><td>{{r.location or '—'}}</td><td>{{r.condition}}</td><td><a class="table-action" href="/inventory/{{r.id}}/edit">Edit</a> <a class="table-action" href="/inventory/{{r.id}}">Movements</a></td></tr>{% endfor %}</table></div>{% else %}<p class="empty">No inventory items yet.</p>{% endif %}</section>
+{% endblock %}
