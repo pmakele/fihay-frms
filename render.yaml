@@ -2,7 +2,7 @@ services:
   - type: web
     name: fihay-frms
     runtime: docker
-    plan: 0.5c-512mb
+    plan: free
     region: frankfurt
     healthCheckPath: /health
     envVars:
@@ -17,16 +17,11 @@ services:
       - key: ALLOW_REGISTRATION
         value: "1"
       - key: DATA_DIR
-        value: /var/data
-    disk:
-      name: fihay-data
-      mountPath: /var/data
-      sizeGB: 1
+        value: /tmp/fihay-data
 
 databases:
   - name: fihay-frms-db
-    plan: 0.1c-256mb
+    plan: free
     region: frankfurt
-    diskSizeGB: 1
     databaseName: fihay_frms
     user: fihay_frms
