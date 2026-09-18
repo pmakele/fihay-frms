@@ -1,0 +1,10 @@
+{
+  "name":"FiHay Farm Record Management System",
+  "short_name":"FiHay FRMS",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#f6f5ed",
+  "theme_color":"#315b38",
+  "description":"Mobile-first, offline-capable farm records for FiHay and pilot farmers.",
+  "icons":[{"src":"/static/icons/fihay-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
